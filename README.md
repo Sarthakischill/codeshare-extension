@@ -51,19 +51,23 @@ This URL can be:
 - Bookmarked for future reference
 - Embedded in documentation
 
+## How It Works: Two Powerful Modes
+
+The CodeShare extension automatically adapts to your context.
+
+**1. Git-Aware Mode (Default)**
+
+If the file you share is part of a Git repository with a recognized remote (like `origin`), the extension creates a permanent, context-rich link. This link contains the repository URL, branch, file path, and line numbers.
+
+**2. Stateless Snippet Mode (Fallback)**
+
+If you share code from a file that isn't in a Git repository, the extension automatically creates a temporary, anonymous snippet link. This link contains only the code you selected and will expire after 24 hours. This ensures you can share code from *anywhere*.
+
 ## Requirements
 
-- VS Code 1.102.0 or higher
-- Git repository with an "origin" remote configured
-- Active workspace with the file you want to share
-
-## How It Works
-
-1. **Git Detection**: Automatically finds your repository's origin remote
-2. **File Path**: Calculates the relative path from your workspace root
-3. **Line Range**: Captures the exact start and end lines of your selection
-4. **URL Encoding**: Uses base64url encoding to handle special characters in file paths
-5. **Universal Link**: Creates a web-accessible URL that works anywhere
+- VS Code 1.90.0 or higher (including forks like Cursor, VSCodium).
+- For full functionality (permanent, context-aware links), the shared file should be in a Git repository with a remote configured.
+- An internet connection is required to generate links.
 
 ## Extension Settings
 
