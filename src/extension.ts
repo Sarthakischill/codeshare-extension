@@ -5,6 +5,36 @@ import * as vscode from "vscode";
 import simpleGit, { SimpleGit } from "simple-git";
 import fetch from "node-fetch";
 
+// Helper function to normalize Git URLs for comparison
+function normalizeGitUrl(url: string): string {
+  try {
+    // First, handle the git@github.com:user/repo.git format
+    let normalized = url.replace(/^git@github.com:/, "https://github.com/");
+
+    // Now, ensure it has the https protocol
+    if (
+      !normalized.startsWith("https://") &&
+      !normalized.startsWith("http://")
+    ) {
+      // This case is unlikely with modern git but good to have
+      normalized = "https://" + normalized;
+    }
+
+    // Use the URL constructor to handle a lot of normalization for us
+    const urlObject = new URL(normalized);
+
+    // Reconstruct a clean path: protocol + hostname + pathname
+    // .replace() removes the trailing '.git' if it exists
+    return `${urlObject.protocol}//${
+      urlObject.hostname
+    }${urlObject.pathname.replace(/\.git$/, "")}`;
+  } catch (e) {
+    // If the URL is invalid, return it as-is for a direct comparison
+    console.warn(`Could not normalize URL: ${url}`);
+    return url.replace(/\.git$/, "");
+  }
+}
+
 // This function is called when your extension is activated.
 export function activate(context: vscode.ExtensionContext) {
   // The command has been defined in the package.json file
@@ -114,24 +144,22 @@ export function activate(context: vscode.ExtensionContext) {
   // URI handler for opening files from codeshare links
   const uriHandler = vscode.window.registerUriHandler({
     async handleUri(uri: vscode.Uri) {
-      // Example URI: vscode://sarthakischill.codeshare-by-sarthak/open?repo=...&file=...&lines=10-25
       if (uri.path !== "/open") {
         return;
       }
 
       const params = new URLSearchParams(uri.query);
-      const repoUrl = params.get("repo");
+      const repoUrlFromLink = params.get("repo");
       const fileToOpen = params.get("file");
       const lineRangeStr = params.get("lines");
 
-      if (!repoUrl || !fileToOpen || !lineRangeStr) {
+      if (!repoUrlFromLink || !fileToOpen || !lineRangeStr) {
         vscode.window.showErrorMessage(
           "Codeshare: Invalid link format. Missing parameters."
         );
         return;
       }
 
-      // Find the workspace folder that matches this repository
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders) {
         vscode.window.showErrorMessage(
@@ -140,19 +168,43 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
+      const normalizedUrlFromLink = normalizeGitUrl(repoUrlFromLink);
       let targetWorkspaceFolder: vscode.WorkspaceFolder | undefined;
 
-      // Try to match the repository URL with one of the open workspace folders
+      // --- START OF NEW DEBUGGING LOGIC ---
+      const discoveredRemotes: string[] = []; // Array to store all remotes we find
+
+      console.log(
+        `[Codeshare] Goal: Find a workspace matching "${normalizedUrlFromLink}"`
+      );
+
       for (const folder of workspaceFolders) {
         try {
           const git: SimpleGit = simpleGit(folder.uri.fsPath);
+          if (!(await git.checkIsRepo())) {
+            continue;
+          } // Skip non-git folders
+
           const remotes = await git.getRemotes(true);
+          console.log(
+            `[Codeshare] Checking folder: "${folder.name}". Found ${remotes.length} remotes.`
+          );
 
           for (const remote of remotes) {
-            const remoteUrl = remote.refs.fetch
-              .replace(/^git@github.com:/, "https://github.com/")
-              .replace(/\.git$/, "");
-            if (remoteUrl === repoUrl) {
+            const normalizedLocalUrl = normalizeGitUrl(remote.refs.fetch);
+
+            // Add to our list for debugging
+            discoveredRemotes.push(
+              `Folder: ${folder.name}, Remote: ${remote.name}, URL: "${normalizedLocalUrl}"`
+            );
+            console.log(
+              `[Codeshare] Comparing: "${normalizedUrlFromLink}" vs "${normalizedLocalUrl}"`
+            );
+
+            if (normalizedLocalUrl === normalizedUrlFromLink) {
+              console.log(
+                `[Codeshare] SUCCESS: Match found in folder "${folder.name}"!`
+              );
               targetWorkspaceFolder = folder;
               break;
             }
@@ -161,18 +213,30 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
         } catch (error) {
-          // This folder might not be a git repository, continue checking others
-          continue;
+          console.warn(
+            `[Codeshare] Error checking folder ${folder.name}:`,
+            error
+          );
         }
       }
+      // --- END OF NEW DEBUGGING LOGIC ---
 
       if (!targetWorkspaceFolder) {
-        vscode.window.showErrorMessage(
-          `Codeshare: Repository "${repoUrl}" not found in your open workspaces.`
+        // --- AGGRESSIVE ERROR MESSAGE ---
+        // This will show a modal dialog that you must interact with.
+        await vscode.window.showErrorMessage(
+          `Codeshare Match Failed!\n\n` +
+            `Link URL:\n"${normalizedUrlFromLink}"\n\n` +
+            `Discovered Remotes:\n${
+              discoveredRemotes.join("\n") ||
+              "None found in any open workspace."
+            }`,
+          { modal: true } // This makes it a blocking dialog
         );
         return;
       }
 
+      // This part will only run if a match was found.
       try {
         // --- ROBUST LINE PARSING ---
         const [startStr, endStr] = lineRangeStr.split("-");
