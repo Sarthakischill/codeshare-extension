@@ -37,12 +37,12 @@ Instantly share links to specific lines of code with universal URLs that work an
 
 The extension generates a universal URL in this format:
 ```
-https://codeshare-web.vercel.app/l/{repo}/{file}/{lineRange}
+https://codeshare.sarthaks.tech/l/{repo}/{file}/{lineRange}
 ```
 
 **Example:**
 ```
-https://codeshare-web.vercel.app/l/aHR0cHM6Ly9naXRodWIuY29tL3VzZXIvcmVwby9naXQ=/c3JjL2V4dGVuc2lvbi50cw==/10-20
+https://codeshare.sarthaks.tech/l/aHR0cHM6Ly9naXRodWIuY29tL3VzZXIvcmVwby9naXQ=/c3JjL2V4dGVuc2lvbi50cw==/10-20
 ```
 
 This URL can be:
