@@ -1,0 +1,113 @@
+# Codeshare
+
+Instantly share links to specific lines of code with universal URLs that work anywhere.
+
+## Features
+
+🚀 **Universal Code Sharing** - Generate web-accessible links to specific code selections that work in any browser
+
+⌨️ **Keyboard Shortcut** - Quick access with `Cmd+Option+C` (Mac) or `Ctrl+Alt+C` (Windows/Linux)
+
+🎯 **Precise Line Selection** - Share exact line ranges with automatic highlighting
+
+🔗 **Git Integration** - Automatically detects repository information and file paths
+
+📋 **One-Click Copy** - Generated links are instantly copied to your clipboard
+
+## Installation
+
+1. Open VS Code
+2. Go to Extensions (`Cmd+Shift+X` on Mac, `Ctrl+Shift+X` on Windows/Linux)
+3. Search for "codeshare"
+4. Click Install
+
+## Usage
+
+### Method 1: Keyboard Shortcut (Recommended)
+1. Select the code you want to share
+2. Press `Cmd+Option+C` (Mac) or `Ctrl+Alt+C` (Windows/Linux)
+3. The link is automatically copied to your clipboard!
+
+### Method 2: Context Menu
+1. Select the code you want to share
+2. Right-click on the selection
+3. Choose "Codeshare: Copy Link to Selection"
+
+### What You Get
+
+The extension generates a universal URL in this format:
+```
+https://codeshare-web.vercel.app/l/{repo}/{file}/{lineRange}
+```
+
+**Example:**
+```
+https://codeshare-web.vercel.app/l/aHR0cHM6Ly9naXRodWIuY29tL3VzZXIvcmVwby9naXQ=/c3JjL2V4dGVuc2lvbi50cw==/10-20
+```
+
+This URL can be:
+- Opened in any web browser
+- Shared via email, Slack, or any messaging platform
+- Bookmarked for future reference
+- Embedded in documentation
+
+## Requirements
+
+- VS Code 1.102.0 or higher
+- Git repository with an "origin" remote configured
+- Active workspace with the file you want to share
+
+## How It Works
+
+1. **Git Detection**: Automatically finds your repository's origin remote
+2. **File Path**: Calculates the relative path from your workspace root
+3. **Line Range**: Captures the exact start and end lines of your selection
+4. **URL Encoding**: Uses base64url encoding to handle special characters in file paths
+5. **Universal Link**: Creates a web-accessible URL that works anywhere
+
+## Extension Settings
+
+This extension doesn't add any VS Code settings. It works out of the box with your existing Git configuration.
+
+## Known Issues
+
+- Requires a Git repository with an "origin" remote
+- Only works with files that are part of your workspace
+- The generated links require the web application to be deployed and accessible
+
+## Troubleshooting
+
+**"No active editor found"**
+- Make sure you have a file open in the editor
+
+**"Please select code to share"**
+- Select one or more lines of code before using the command
+
+**"No 'origin' remote found"**
+- Ensure your Git repository has an origin remote configured
+- Run: `git remote add origin <your-repo-url>`
+
+**"Repository not found in your open workspaces"**
+- Make sure the repository is open in VS Code
+- The repository URL must match exactly (including protocol)
+
+## Release Notes
+
+### 1.0.0
+- Initial release with universal URL generation
+- Keyboard shortcut support (`Cmd+Option+C` / `Ctrl+Alt+C`)
+- Context menu integration
+- Git repository detection
+- Base64url encoding for special characters
+
+## Contributing
+
+Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/Sarthakischill/codeshare-project.git).
+
+## License
+
+This extension is open source and available under the MIT License.
+
+---
+
+**Enjoy sharing your code effortlessly!** 🎉
